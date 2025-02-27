@@ -1,0 +1,117 @@
+body {
+    width: 300px;
+    background-color: #1b2838;
+    font-family: Arial, sans-serif;
+    color: white;
+    text-align: center;
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+h1,
+h2 {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+/* Estilo do campo de pesquisa */
+input {
+    width: 90%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    text-align: center;
+}
+
+button {
+    background-color: #2a475e;
+    color: white;
+    border: none;
+    padding: 10px;
+    width: 100%;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background-color: #66c0f4;
+}
+
+/* Estilo da lista negra */
+ul {
+    list-style: none;
+    padding: 0;
+    width: 100%;
+}
+
+li {
+    background-color: #2a475e;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    margin: 5px 0;
+    border-radius: 5px;
+    width: 90%;
+}
+
+.blacklist-item {
+    flex-grow: 1;
+    text-align: left;
+    padding: 10px;
+    font-size: 16px;
+    border: none;
+    background: none;
+    color: white;
+    outline: none;
+    min-width: 130px;
+    word-break: break-word;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.blacklist-item::before {
+    content: "✏️";
+    font-size: 16px;
+    color: #f39c12;
+}
+
+.blacklist-item:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 5px;
+}
+
+.remove-btn {
+    padding: 10px 15px;
+    font-size: 16px;
+}
+
+/* Botão de remoção */
+.remove-btn {
+    background-color: #d9534f;
+    border: none;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-left: 10px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.remove-btn:hover {
+    background-color: #c9302c;
+}
