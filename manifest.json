@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "Pesquisa na Steam",
+    "name": "LegitSteamFinder",
     "version": "1.3",
     "description": "Pesquisa um jogo na Steam rapidamente pelo menu de contexto.",
     "permissions": [
