@@ -1,9 +1,10 @@
+import { getPopularity } from "./api/rawg_api.js";
+
 const removeWords = [
     "Free Download", "Full Version", "Latest Version", "Cracked", "PC Game",
     "Torrent", "Updated", "ISO", "Setup", "Patch", "SteamGG.NET", "AtopGames", "Hotfix ", "Elamigos ", "FitGirl", "Deluxe Edition", "update"
 ];
 
-// Lista de palavras bloqueadas pelo usuário (carregadas do armazenamento)
 let blacklist = [];
 chrome.storage.sync.get(["blacklist"], (data) => {
     if (data.blacklist) {
@@ -12,66 +13,53 @@ chrome.storage.sync.get(["blacklist"], (data) => {
     }
 });
 
-// Função para adicionar palavra à lista negra
 function addToBlacklist(word) {
     const wordLower = word.toLowerCase();
     if (!blacklist.includes(wordLower)) {
         blacklist.push(wordLower);
-
         chrome.storage.sync.set({ "blacklist": blacklist }, () => {
             console.log(`✅ "${word}" foi adicionado à lista negra.`);
-            console.log("📢 Lista negra atualizada:", blacklist);
         });
-    } else {
-        console.log(`⚠️ "${word}" já está na lista negra.`);
     }
 }
 
-// Criar opções no menu de contexto
 chrome.runtime.onInstalled.addListener(() => {
-    chrome.contextMenus.create({
-        id: "searchSteamElement",
-        title: "Pesquisar na Steam",
-        contexts: ["selection", "image", "link", "page"]
-    });
-
-    chrome.contextMenus.create({
-        id: "addToBlacklist",
-        title: "🚫 Adicionar à Lista Negra",
-        contexts: ["selection"]
-    });
-
-    console.log("✅ Menus de contexto criados.");
+    chrome.contextMenus.create({ id: "searchSteamElement", title: "🔍 Pesquisar na Steam", contexts: ["selection", "image", "link", "page"] });
+    chrome.contextMenus.create({ id: "viewPopularity", title: "⭐ Ver popularidade", contexts: ["selection"] });
+    chrome.contextMenus.create({ id: "addToBlacklist", title: "🚫 Adicionar à Lista Negra", contexts: ["selection"] });
+    chrome.contextMenus.create({ id: "viewTrailer", title: "📺 Ver Trailer", contexts: ["selection"] });
 });
 
-// Função para limpar o nome do jogo baseado na blacklist
 function cleanGameTitle(title) {
     if (!title) return "Jogo Desconhecido";
-
-    const originalTitle = title;
     const allBlacklistedWords = [...removeWords, ...blacklist];
-
     for (const word of allBlacklistedWords) {
         const regex = new RegExp(`\\b${word}\\b`, "gi");
         if (title.match(regex)) {
-            console.log(`⚠️ Palavra bloqueada encontrada: "${word}". Removendo todo o restante do título.`);
-            title = title.split(word)[0].trim(); // Remove tudo após a palavra bloqueada
+            title = title.split(word)[0].trim();
             break;
         }
     }
-
-    console.log(`📝 Texto original: "${originalTitle}"`);
-    console.log(`✂️ Texto após remover blacklist: "${title}"`);
-
     return title || "Jogo Desconhecido";
 }
 
-// Função para capturar o melhor nome do jogo no site
+function findTrailer(info, tab) {
+    if (!tab || !tab.id || !chrome.scripting) return;
+    chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        args: [info],
+        func: (info) => info.selectionText || ''
+    }).then(result => {
+        if (result?.[0]?.result) {
+            let query = cleanGameTitle(result[0].result);
+            let trailerUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}+trailer`;
+            chrome.tabs.create({ url: trailerUrl });
+        }
+    });
+}
+
 function getElementText(info, tab) {
-    if (!tab || !tab.id || !chrome.scripting) {
-        console.error("🚨 Erro: `chrome.scripting.executeScript` não disponível ou `tab.id` inválido.");
-        return;
-    }
+    if (!tab || !tab.id || !chrome.scripting) return;
 
     chrome.scripting.executeScript({
         target: { tabId: tab.id },
@@ -92,7 +80,6 @@ function getElementText(info, tab) {
                 if (el) {
                     text = el.getAttribute("alt") || el.title || el.getAttribute("aria-label") || el.getAttribute("data-title") || el.getAttribute("data-name") || "";
 
-                    // Se não encontrou nada, procurar no elemento pai (figure, div, li, ou .relative.group)
                     if (!text.trim()) {
                         let parent = el.closest("figure, div, li, .relative.group");
                         if (parent) {
@@ -104,7 +91,6 @@ function getElementText(info, tab) {
             } else {
                 let el = document.activeElement;
                 if (el) {
-                    // Verifica se é um post que contém o título correto
                     let postContainer = el.closest("li.post-item, div.post-details, div.relative.group");
                     if (postContainer) {
                         let titleEl = postContainer.querySelector("a[aria-label]:not(.post-cat), a[title]");
@@ -116,7 +102,6 @@ function getElementText(info, tab) {
                         }
                     }
 
-                    // Se não encontrou nada, buscar título na página inteira
                     if (!text.trim()) {
                         let possibleText = el.querySelector("div[style*='font-size']") || el.querySelector(".vc_gitem-post-data-source-post_title") || el.closest("div");
                         if (possibleText) text = possibleText.innerText || possibleText.textContent;
@@ -124,7 +109,6 @@ function getElementText(info, tab) {
                 }
             }
 
-            // Tentar pegar o primeiro título na página
             if (!text.trim()) {
                 let mainTitle = document.querySelector("h1, h2, h3");
                 if (mainTitle) text = mainTitle.innerText || mainTitle.textContent;
@@ -132,7 +116,6 @@ function getElementText(info, tab) {
 
             text = text.replace(/-/g, " ").trim();
 
-            // Evita pegar categorias como "Simulation" ao remover palavras comuns irrelevantes
             const categoryWords = ["Action", "Adventure", "Simulation", "Strategy", "RPG", "Multiplayer"];
             categoryWords.forEach(word => {
                 if (text.includes(word) && text.split(" ").length <= 3) {
@@ -154,22 +137,30 @@ function getElementText(info, tab) {
     });
 }
 
-// Adicionar ação ao clicar no menu de contexto
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-    // Opção de pesquisa na Steam
     if (info.menuItemId === "searchSteamElement") {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            if (tabs.length === 0) {
-                console.error("🚨 Nenhuma aba ativa encontrada.");
-                return;
-            }
-            getElementText(info, tabs[0]); // Passa a aba ativa correta
+            if (tabs.length > 0) getElementText(info, tabs[0]);
         });
-    }
-    // Opção de adicionar à lista negra
-    else if (info.menuItemId === "addToBlacklist") {
+    } else if (info.menuItemId === "addToBlacklist" && info.selectionText) {
+        addToBlacklist(info.selectionText);
+    } else if (info.menuItemId === "viewTrailer") {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            if (tabs.length > 0) findTrailer(info, tabs[0]);
+        });
+    } else if (info.menuItemId === "viewPopularity") {
         if (info.selectionText) {
-            addToBlacklist(info.selectionText);
+            let query = cleanGameTitle(info.selectionText);
+            getPopularity(query).then(popularity => {
+                chrome.scripting.executeScript({
+                    target: { tabId: tab.id },
+                    args: [popularity],
+                    func: (popularity) => {
+                        alert(`⭐ Nota média (RAWG): ${popularity.popularity}\n👾 Nota Metacritics: ${popularity.metacritic}\n 📅 Lançado em: ${popularity.released}\n 📑Atualizado em: ${popularity.updated}   
+                            `);
+                    }
+                });
+            });
         }
     }
 });
