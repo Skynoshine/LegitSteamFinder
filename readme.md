@@ -1,5 +1,6 @@
-![image](https://github.com/user-attachments/assets/d6ed88f8-c424-4370-bdf1-dc76b69594ff)# 🔍 Steam Search Extension
+![image](https://github.com/user-attachments/assets/d6ed88f8-c424-4370-bdf1-dc76b69594ff)# 
 
+🔍 Steam Search Extension
 Uma extensão para o navegador que permite pesquisar rapidamente jogos na Steam a partir de títulos encontrados em sites de terceiros. Também possui uma lista negra para filtrar palavras indesejadas dos títulos pesquisados.
 
 ## 🚀 Funcionalidades
