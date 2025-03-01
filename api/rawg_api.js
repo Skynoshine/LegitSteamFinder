@@ -1,4 +1,4 @@
-const API_KEY = "...";
+const API_KEY = "ca902764dc4643799dd4be81262235b0";
 const API_URL = "https://api.rawg.io/api/games";
 
 export async function getPopularity(id) {

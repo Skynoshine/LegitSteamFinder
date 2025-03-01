@@ -24,10 +24,10 @@ function addToBlacklist(word) {
 }
 
 chrome.runtime.onInstalled.addListener(() => {
-    chrome.contextMenus.create({ id: "searchSteamElement", title: "🔍 Pesquisar na Steam", contexts: ["selection", "image", "link", "page"] });
-    chrome.contextMenus.create({ id: "viewPopularity", title: "⭐ Ver popularidade", contexts: ["selection"] });
-    chrome.contextMenus.create({ id: "addToBlacklist", title: "🚫 Adicionar à Lista Negra", contexts: ["selection"] });
-    chrome.contextMenus.create({ id: "viewTrailer", title: "📺 Ver Trailer", contexts: ["selection"] });
+    chrome.contextMenus.create({ id: "searchSteamElement", title: "🔍 Find on Steam", contexts: ["selection", "image", "link", "page"] });
+    chrome.contextMenus.create({ id: "viewPopularity", title: "⭐ Popularity", contexts: ["selection"] });
+    chrome.contextMenus.create({ id: "addToBlacklist", title: "🚫 Block this word", contexts: ["selection"] });
+    chrome.contextMenus.create({ id: "viewTrailer", title: "📺 Trailer", contexts: ["selection"] });
 });
 
 function cleanGameTitle(title) {
@@ -156,7 +156,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
                     target: { tabId: tab.id },
                     args: [popularity],
                     func: (popularity) => {
-                        alert(`⭐ Nota média (RAWG): ${popularity.popularity}\n👾 Nota Metacritics: ${popularity.metacritic}\n 📅 Lançado em: ${popularity.released}\n 📑Atualizado em: ${popularity.updated}   
+                        alert(`⭐ Score (RAWG): ${popularity.popularity}\n👾 Score Metacritics: ${popularity.metacritic}\n 📅 Released: ${popularity.released}\n 🗓️ Updated: ${popularity.updated}   
                             `);
                     }
                 });
